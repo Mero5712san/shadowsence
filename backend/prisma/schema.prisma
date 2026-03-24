@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  anonymousId String    @unique @map("anonymous_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id         Int       @id @default(autoincrement())
+  sessionId  String    @unique @map("session_id")
+  userId     Int?      @map("user_id")
+  startTime  DateTime  @default(now()) @map("start_time")
+  endTime    DateTime? @map("end_time")
+  ipAddress  String?   @map("ip_address")
+  device     String?
+  browser    String?
+  currentPage String?  @map("current_page")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+
+  user   User?    @relation(fields: [userId], references: [id])
+  events Event[]
+  alerts Alert[]
+
+  @@index([ipAddress])
+  @@index([lastSeenAt])
+  @@map("sessions")
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  sessionId Int      @map("session_id")
+  eventType String   @map("event_type")
+  eventData Json     @map("event_data")
+  timestamp DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@index([eventType])
+  @@index([timestamp])
+  @@map("events")
+}
+
+model Alert {
+  id        Int      @id @default(autoincrement())
+  sessionId Int      @map("session_id")
+  type      String
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("alerts")
+}

@@ -1,0 +1,22 @@
+{
+    "name": "shadowsense",
+    "version": "0.1.0",
+    "private": true,
+    "workspaces": [
+        "backend",
+        "dashboard",
+        "sdk"
+    ],
+    "scripts": {
+        "postinstall": "npm run prisma:generate -w backend",
+        "install:all": "npm install --workspaces",
+        "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w dashboard\"",
+        "dev:backend": "npm run dev -w backend",
+        "dev:dashboard": "npm run dev -w dashboard",
+        "build": "npm run build -w dashboard && npm run build -w sdk",
+        "lint": "npm run lint -w backend && npm run lint -w dashboard"
+    },
+    "devDependencies": {
+        "concurrently": "^9.0.1"
+    }
+}

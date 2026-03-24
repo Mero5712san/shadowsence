@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShadowSense</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <h1>ShadowSense</h1>
+      <p class="subtitle">Live behavior signal</p>
+      <section class="stats">
+        <div>
+          <span>Live Users</span>
+          <strong id="liveUsers">-</strong>
+        </div>
+        <div>
+          <span>Alerts</span>
+          <strong id="alerts">-</strong>
+        </div>
+      </section>
+      <button id="refreshButton" type="button">Refresh</button>
+      <ul id="recentAlerts"></ul>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

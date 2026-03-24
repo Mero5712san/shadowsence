@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "ShadowSense",
+    "version": "1.0",
+    "description": "Real-time behavior tracking extension for ShadowSense",
+    "permissions": [
+        "storage"
+    ],
+    "host_permissions": [
+        "http://localhost:5000/*",
+        "<all_urls>"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "sdk.js"
+            ]
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
