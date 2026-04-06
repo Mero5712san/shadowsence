@@ -6,6 +6,29 @@ import { AlertItem, DashboardEvent, DashboardSnapshot, DashboardSummary, LiveUse
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:5000";
 const CHART_POINTS = 10;
 
+const EMPTY_SUMMARY: DashboardSummary = {
+    totalUsers: 0,
+    activeUsers: 0,
+    totalEvents: 0,
+};
+
+function asArray<T>(value: unknown): T[] {
+    return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asSummary(value: unknown): DashboardSummary {
+    if (!value || typeof value !== "object") {
+        return EMPTY_SUMMARY;
+    }
+
+    const data = value as Partial<DashboardSummary>;
+    return {
+        totalUsers: typeof data.totalUsers === "number" ? data.totalUsers : 0,
+        activeUsers: typeof data.activeUsers === "number" ? data.activeUsers : 0,
+        totalEvents: typeof data.totalEvents === "number" ? data.totalEvents : 0,
+    };
+}
+
 function clamp(value: number, min: number, max: number) {
     return Math.max(min, Math.min(max, value));
 }
@@ -90,14 +113,11 @@ export function App() {
         }
         return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     });
-    const [summary, setSummary] = useState<DashboardSummary>({
-        totalUsers: 0,
-        activeUsers: 0,
-        totalEvents: 0,
-    });
+    const [summary, setSummary] = useState<DashboardSummary>(EMPTY_SUMMARY);
     const [events, setEvents] = useState<DashboardEvent[]>([]);
     const [liveUsers, setLiveUsers] = useState<LiveUser[]>([]);
     const [alerts, setAlerts] = useState<AlertItem[]>([]);
+    const [backendError, setBackendError] = useState<string | null>(null);
 
     const eventMix = useMemo(() => {
         const counts: Record<string, number> = {};
@@ -118,10 +138,10 @@ export function App() {
     } as CSSProperties;
 
     const applySnapshot = useCallback((snapshot: DashboardSnapshot) => {
-        setSummary(snapshot.summary);
-        setEvents(snapshot.recentEvents);
-        setLiveUsers(snapshot.liveUsers);
-        setAlerts(snapshot.alerts);
+        setSummary(asSummary(snapshot.summary));
+        setEvents(asArray<DashboardEvent>(snapshot.recentEvents));
+        setLiveUsers(asArray<LiveUser>(snapshot.liveUsers));
+        setAlerts(asArray<AlertItem>(snapshot.alerts));
     }, []);
 
     useEffect(() => {
@@ -139,6 +159,11 @@ export function App() {
                 fetch(`${API_BASE}/api/alerts`),
             ]);
 
+            if (!dashboardRes.ok || !liveRes.ok || !alertRes.ok) {
+                const failing = [dashboardRes, liveRes, alertRes].find((response) => !response.ok);
+                throw new Error(`Backend request failed (${failing?.status ?? "unknown"})`);
+            }
+
             const dashboardData = await dashboardRes.json();
             const liveData = await liveRes.json();
             const alertData = await alertRes.json();
@@ -148,15 +173,18 @@ export function App() {
             }
 
             applySnapshot({
-                summary: dashboardData.summary,
-                recentEvents: dashboardData.recentEvents,
-                liveUsers: liveData.liveUsers,
-                alerts: alertData.alerts,
+                summary: asSummary(dashboardData?.summary),
+                recentEvents: asArray<DashboardEvent>(dashboardData?.recentEvents),
+                liveUsers: asArray<LiveUser>(liveData?.liveUsers),
+                alerts: asArray<AlertItem>(alertData?.alerts),
             });
+
+            setBackendError(null);
         }
 
         bootstrap().catch((error) => {
             console.error("Failed to load dashboard", error);
+            setBackendError("Backend unavailable. Verify API server and DATABASE_URL.");
         });
 
         const socket = io(API_BASE, {
@@ -169,6 +197,7 @@ export function App() {
 
         socket.on("dashboard_snapshot", (snapshot: DashboardSnapshot) => {
             applySnapshot(snapshot);
+            setBackendError(null);
         });
 
         socket.on("new_event", (event: DashboardEvent) => {
@@ -178,6 +207,7 @@ export function App() {
 
         socket.on("connect_error", (error) => {
             console.error("Socket connection failed", error.message);
+            setBackendError("Realtime stream offline. Waiting for backend...");
         });
 
         return () => {
@@ -228,6 +258,22 @@ export function App() {
             </header>
 
             <main className="route-stage" key={location.pathname}>
+                {backendError ? (
+                    <div
+                        role="status"
+                        style={{
+                            marginBottom: "1rem",
+                            border: "1px solid rgba(255, 93, 110, 0.45)",
+                            background: "rgba(255, 93, 110, 0.12)",
+                            color: "#ffe8eb",
+                            borderRadius: "10px",
+                            padding: "0.75rem 1rem",
+                            fontSize: "0.92rem",
+                        }}
+                    >
+                        {backendError}
+                    </div>
+                ) : null}
                 <Routes>
                     <Route path="/" element={<Navigate to="/attack-surface" replace />} />
                     <Route
