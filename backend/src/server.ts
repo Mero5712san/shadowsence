@@ -19,9 +19,14 @@ const prisma = new PrismaClient();
 const app = express();
 const server = http.createServer(app);
 
+const corsOrigins = (process.env.CORS_ORIGIN ?? process.env.DASHBOARD_ORIGIN ?? "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
 const io = new Server(server, {
     cors: {
-        origin: process.env.DASHBOARD_ORIGIN ?? "http://localhost:5173",
+        origin: corsOrigins,
     },
 });
 
@@ -48,7 +53,7 @@ const trackEventSchema = z.object({
         .optional(),
 });
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: corsOrigins }));
 app.use(express.json({ limit: "500kb" }));
 
 app.get("/api/health", (_req, res) => {

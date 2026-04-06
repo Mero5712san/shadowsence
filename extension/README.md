@@ -15,5 +15,5 @@
 
 ## Notes
 
-- Backend must run at `http://localhost:5000`
-- Update API URL in `popup.js` and `background.js` for production
+- Local backend default is `http://localhost:5000`
+- For production, set `SHADOWSENSE_API_BASE` in `config.js`

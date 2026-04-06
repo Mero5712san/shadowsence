@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:5000";
+importScripts("config.js");
+
+const API_BASE = globalThis.SHADOWSENSE_API_BASE || "http://localhost:5000";
 let lastAlertId = 0;
 
 async function pollAlerts() {
