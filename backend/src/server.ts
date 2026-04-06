@@ -6,6 +6,7 @@ import cors from "cors";
 import http from "node:http";
 import { Server } from "socket.io";
 import { PrismaClient } from "@prisma/client";
+import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { runAnomalyChecks } from "./anomaly.js";
 import { enqueueAnomalyEvent } from "./jobs/queues.js";
@@ -29,6 +30,23 @@ const io = new Server(server, {
         origin: corsOrigins,
     },
 });
+
+type AsyncRouteHandler = (req: Request, res: Response, next: NextFunction) => Promise<unknown>;
+
+function asyncHandler(handler: AsyncRouteHandler) {
+    return (req: Request, res: Response, next: NextFunction) => {
+        handler(req, res, next).catch(next);
+    };
+}
+
+function isPrismaInitializationError(error: unknown): boolean {
+    return Boolean(
+        error &&
+        typeof error === "object" &&
+        "name" in error &&
+        (error as { name?: string }).name === "PrismaClientInitializationError",
+    );
+}
 
 const trackEventSchema = z.object({
     sessionId: z.string().min(8),
@@ -176,7 +194,7 @@ async function getOrCreateUser(anonymousId: string) {
     }
 }
 
-app.post("/api/events", async (req, res) => {
+app.post("/api/events", asyncHandler(async (req, res) => {
     const parsed = trackEventSchema.safeParse(req.body);
     if (!parsed.success) {
         return res.status(400).json({ error: parsed.error.flatten() });
@@ -244,21 +262,35 @@ app.post("/api/events", async (req, res) => {
     });
 
     return res.status(202).json({ success: true });
-});
+}));
 
-app.get("/api/dashboard", async (_req, res) => {
+app.get("/api/dashboard", asyncHandler(async (_req, res) => {
     const dashboard = await fetchDashboardData();
     res.json(dashboard);
-});
+}));
 
-app.get("/api/live", async (_req, res) => {
+app.get("/api/live", asyncHandler(async (_req, res) => {
     const live = await fetchLiveUsers();
     res.json(live);
-});
+}));
 
-app.get("/api/alerts", async (_req, res) => {
+app.get("/api/alerts", asyncHandler(async (_req, res) => {
     const data = await fetchAlerts();
     res.json(data);
+}));
+
+app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("API request failed", error);
+
+    if (isPrismaInitializationError(error)) {
+        return res.status(503).json({
+            error: "Database is unavailable. Check DATABASE_URL and database network access.",
+        });
+    }
+
+    return res.status(500).json({
+        error: "Internal server error",
+    });
 });
 
 io.on("connection", (socket) => {
