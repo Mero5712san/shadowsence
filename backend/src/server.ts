@@ -20,14 +20,37 @@ const prisma = new PrismaClient();
 const app = express();
 const server = http.createServer(app);
 
-const corsOrigins = (process.env.CORS_ORIGIN ?? process.env.DASHBOARD_ORIGIN ?? "http://localhost:5173")
+function normalizeOrigin(origin: string) {
+    return origin.trim().replace(/\/$/, "").toLowerCase();
+}
+
+const defaultCorsOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://shadowsence-dashboard.vercel.app",
+];
+
+const configuredCorsOrigins = (process.env.CORS_ORIGIN ?? process.env.DASHBOARD_ORIGIN ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+const corsOriginSet = new Set([...defaultCorsOrigins, ...configuredCorsOrigins].map(normalizeOrigin));
+
+function isAllowedOrigin(origin?: string) {
+    if (!origin) {
+        // Non-browser requests (curl, health probes) have no Origin header.
+        return true;
+    }
+
+    return corsOriginSet.has(normalizeOrigin(origin));
+}
+
 const io = new Server(server, {
     cors: {
-        origin: corsOrigins,
+        origin: (origin, callback) => {
+            callback(null, isAllowedOrigin(origin));
+        },
     },
 });
 
@@ -71,7 +94,13 @@ const trackEventSchema = z.object({
         .optional(),
 });
 
-app.use(cors({ origin: corsOrigins }));
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            callback(null, isAllowedOrigin(origin));
+        },
+    }),
+);
 app.use(express.json({ limit: "500kb" }));
 
 app.get("/api/health", (_req, res) => {
