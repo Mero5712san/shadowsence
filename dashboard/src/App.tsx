@@ -3,7 +3,7 @@ import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { io, Socket } from "socket.io-client";
 import { AlertItem, DashboardEvent, DashboardSnapshot, DashboardSummary, LiveUser } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "https://shadowsence.onrender.com";
 const CHART_POINTS = 10;
 
 const EMPTY_SUMMARY: DashboardSummary = {

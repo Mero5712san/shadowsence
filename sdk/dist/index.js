@@ -1,7 +1,8 @@
 const SESSION_KEY = "shadowsense_session_id";
 const ANON_KEY = "shadowsense_anon_id";
 const OPT_OUT_KEY = "shadowsense_opt_out";
-const API_URL = "http://localhost:5000/api/events";
+const DEFAULT_API_BASE = "https://shadowsence.onrender.com";
+const API_URL = `${DEFAULT_API_BASE}/api/events`;
 function uid(prefix) {
     return `${prefix}_${crypto.randomUUID()}`;
 }
@@ -27,7 +28,7 @@ class ShadowSenseSDK {
     }
     init(config) {
         var _a, _b, _c;
-        this.apiBaseUrl = (_a = config.apiBaseUrl) !== null && _a !== void 0 ? _a : "http://localhost:5000";
+        this.apiBaseUrl = (_a = config.apiBaseUrl) !== null && _a !== void 0 ? _a : DEFAULT_API_BASE;
         this.siteId = config.siteId;
         this.consent = Boolean(config.consent);
         this.sessionId = (_b = localStorage.getItem(SESSION_KEY)) !== null && _b !== void 0 ? _b : uid("ssn");

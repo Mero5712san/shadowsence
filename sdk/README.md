@@ -13,7 +13,7 @@
 import { shadowSense } from "@shadowsense/sdk";
 
 shadowSense.init({
-  apiBaseUrl: "http://localhost:5000",
+  apiBaseUrl: "https://shadowsence.onrender.com",
   siteId: "my-site",
   consent: true,
 });
@@ -25,7 +25,7 @@ shadowSense.init({
 const accepted = localStorage.getItem("analytics_consent") === "1";
 
 shadowSense.init({
-  apiBaseUrl: "http://localhost:5000",
+  apiBaseUrl: "https://shadowsence.onrender.com",
   siteId: "my-site",
   consent: accepted,
 });

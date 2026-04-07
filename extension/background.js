@@ -1,6 +1,6 @@
 importScripts("config.js");
 
-const API_BASE = globalThis.SHADOWSENSE_API_BASE || "http://localhost:5000";
+const API_BASE = globalThis.SHADOWSENSE_API_BASE || "https://shadowsence.onrender.com";
 let lastAlertId = 0;
 
 async function pollAlerts() {

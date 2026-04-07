@@ -1,5 +1,5 @@
 (() => {
-    const API_URL = "http://localhost:5000/api/events";
+    const API_URL = "https://shadowsence.onrender.com/api/events";
     const SESSION_KEY = "shadowsense_ext_session_id";
     const ANON_KEY = "shadowsense_ext_anon_id";
 

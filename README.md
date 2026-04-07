@@ -50,7 +50,7 @@ Privacy-first real-time user behavior analytics and anomaly detection platform.
 <script type="module">
   import { shadowSense } from "./dist/index.js";
   shadowSense.init({
-      apiBaseUrl: "http://localhost:5000",
+   apiBaseUrl: "https://shadowsence.onrender.com",
     siteId: "demo-site",
     consent: true
   });

@@ -28,7 +28,8 @@ type Payload = {
 const SESSION_KEY = "shadowsense_session_id";
 const ANON_KEY = "shadowsense_anon_id";
 const OPT_OUT_KEY = "shadowsense_opt_out";
-const API_URL = "http://localhost:5000/api/events";
+const DEFAULT_API_BASE = "https://shadowsence.onrender.com";
+const API_URL = `${DEFAULT_API_BASE}/api/events`;
 
 function uid(prefix: string) {
     return `${prefix}_${crypto.randomUUID()}`;
@@ -51,7 +52,7 @@ class ShadowSenseSDK {
     private scrollBucket = 0;
 
     init(config: InitConfig) {
-        this.apiBaseUrl = config.apiBaseUrl ?? "http://localhost:5000";
+        this.apiBaseUrl = config.apiBaseUrl ?? DEFAULT_API_BASE;
         this.siteId = config.siteId;
         this.consent = Boolean(config.consent);
 

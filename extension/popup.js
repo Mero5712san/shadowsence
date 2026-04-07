@@ -1,4 +1,4 @@
-const API_BASE = globalThis.SHADOWSENSE_API_BASE || "http://localhost:5000";
+const API_BASE = globalThis.SHADOWSENSE_API_BASE || "https://shadowsence.onrender.com";
 
 async function refresh() {
     const [liveRes, alertsRes] = await Promise.all([

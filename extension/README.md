@@ -15,5 +15,5 @@
 
 ## Notes
 
-- Local backend default is `http://localhost:5000`
+- Backend default is `https://shadowsence.onrender.com`
 - For production, set `SHADOWSENSE_API_BASE` in `config.js`
